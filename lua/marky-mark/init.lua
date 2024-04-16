@@ -79,7 +79,7 @@ M.show_list = function()
     y_off = -1 * closest_line_index + 1
   end
 
-  local lines = marks.get_formatted_marks_str(buff_instance)
+  local lines = marks.get_formatted_marks_str(buff_instance, M.opts.popup_width or 35)
   local height = math.max(#lines, 1)
 
   local popup = Popup({
@@ -102,7 +102,7 @@ M.show_list = function()
       col = 0,
     },
     size = {
-      width = 40,
+      width = M.opts.popup_width or 35,
       height = height,
     },
   })
@@ -141,13 +141,14 @@ M.show_list = function()
 
   local buff_cursor = vim.api.nvim_win_get_cursor(0)
   popup:mount()
-  ui.rerender(buff_instance, popup.bufnr, buff_cursor)
+  ui.rerender(buff_instance, popup.bufnr, buff_cursor, M.opts.popup_width or 35)
 end
 
 M.setup = function(opts)
   M.opts = opts or {
     zz_after_jump = true,
     use_default_keymap = true,
+    popup_width = 35,
   }
 
   if M.opts.use_default_keymap then

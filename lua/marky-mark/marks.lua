@@ -72,10 +72,13 @@ M.mark_buff_line = function(buff_instance, cursor)
   end)
 end
 
-M.get_formatted_marks_str = function(buff_instance)
+M.get_formatted_marks_str = function(buff_instance, width)
+  width = width or 35
+
   local lines = {}
   local line_nums = {}
   local max_num_len = 0
+  local chars = {}
 
   for _, mark in pairs(buff_instance.marks) do
     local cursor = vim.api.nvim_buf_get_mark(buff_instance.buff_nr, mark.char)
@@ -91,18 +94,24 @@ M.get_formatted_marks_str = function(buff_instance)
 
       table.insert(lines, line)
       table.insert(line_nums, line_nr)
+      table.insert(chars, mark.char)
     else
       error("Could not get marked line")
     end
   end
 
   local marks = {}
-  local padding = 5
+  local padding = max_num_len + 1
 
   for i, line in ipairs(lines) do
     local line_num = line_nums[i]
     local num_str = string.rep(" ", max_num_len - #line_num) .. line_num
-    table.insert(marks, num_str .. string.rep(" ", padding - #num_str) .. line)
+    local char = chars[i]
+    local formatted_line = num_str .. string.rep(" ", padding - #num_str) .. "'" .. char .. " " .. line
+    if #formatted_line > width - 3 then
+      formatted_line = string.sub(formatted_line, 1, width - 3) .. "..."
+    end
+    table.insert(marks, formatted_line)
   end
 
   return marks

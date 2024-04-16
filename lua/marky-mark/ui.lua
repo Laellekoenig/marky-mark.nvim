@@ -2,8 +2,8 @@ local marks = require("marky-mark.marks")
 
 local M = {}
 
-M.rerender = function(buff_instance, popup_buff_nr, buff_cursor)
-  local lines = marks.get_formatted_marks_str(buff_instance)
+M.rerender = function(buff_instance, popup_buff_nr, buff_cursor, popup_width)
+  local lines = marks.get_formatted_marks_str(buff_instance, popup_width)
 
   -- clear buffer and insert new lines
   vim.api.nvim_set_option_value("filetype", "marky-mark", { buf = popup_buff_nr })
@@ -12,9 +12,15 @@ M.rerender = function(buff_instance, popup_buff_nr, buff_cursor)
   vim.api.nvim_buf_set_lines(popup_buff_nr, 0, #lines, false, lines)
   vim.api.nvim_set_option_value("modifiable", false, { buf = popup_buff_nr })
 
-  -- highlight numbers
-  vim.cmd('syntax match marky_mark_leading_number /\\d\\+/')
-  vim.cmd('highlight link marky_mark_leading_number Number')
+  -- highlight numbers and marks
+  vim.cmd('syntax match marky_mark_leading_number "^\\s*\\d\\+"')
+  vim.cmd('highlight link marky_mark_leading_number Comment')
+
+  vim.cmd('syntax match marky_mark_mark "\\(^\\s*\\d\\+\\s*\\)\\@<=\'\\k\\{1}"')
+  vim.cmd('highlight link marky_mark_mark String')
+
+  vim.cmd('syntax match marky_mark_line "\\(^\\s*\\d\\+\\s*\'\\k\\{1}\\)\\@<=.*"')
+  vim.cmd('highlight link marky_mark_line Identifier')
 
   local goto_line = nil
   if buff_cursor ~= nil then
