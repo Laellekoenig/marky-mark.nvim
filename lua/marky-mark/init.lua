@@ -1,4 +1,5 @@
 local marks = require("marky-mark.marks")
+local utils = require("marky-mark.utils")
 local ui = require("marky-mark.ui")
 local Popup = require("nui.popup")
 local event = require("nui.utils.autocmd").event
@@ -7,6 +8,11 @@ local M = {}
 M.buffers = {}
 
 M.add_mark = function()
+  if utils.in_marky_mark() then
+    error("Cannot mark lines in marky-mark.")
+    return
+  end
+
   local buff_nr = vim.api.nvim_get_current_buf()
   local buff_instance = marks.get_buff_instance(M.buffers, buff_nr)
 
@@ -19,6 +25,11 @@ M.add_mark = function()
 end
 
 M.show_list = function()
+  if utils.in_marky_mark() then
+    error("Cannot open marky-mark in marky-mark.")
+    return
+  end
+
   local popup = Popup({
     enter = true,
     focusable = true,
@@ -37,6 +48,7 @@ M.show_list = function()
   })
 
   local buff_nr = vim.api.nvim_get_current_buf()
+  local buff_cursor = vim.api.nvim_win_get_cursor(0)
   local buff_instance = marks.get_buff_instance(M.buffers, buff_nr)
   if buff_instance == nil then
     buff_instance = marks.new_buff_instance(buff_nr)
@@ -49,12 +61,15 @@ M.show_list = function()
   local ok4 = popup:map("n", "<cr>", function()
     local cursor = vim.api.nvim_win_get_cursor(0)
     marks.goto_mark(buff_instance, cursor[1], function() popup:unmount() end)
+    if M.opts.zz_after_jump then
+      vim.api.nvim_feedkeys("zz", "n", true)
+    end
   end, { noremap = true })
 
   local ok5 = popup:map("n", "dd", function()
     local cursor = vim.api.nvim_win_get_cursor(0)
     marks.remove_mark(buff_instance, cursor[1])
-    ui.rerender(buff_instance, popup.bufnr)
+    ui.rerender(buff_instance, popup.bufnr, buff_cursor)
   end, { noremap = true })
 
   local ok6 = popup:map("v", "d", function()
@@ -76,11 +91,13 @@ M.show_list = function()
   end)
 
   popup:mount()
-  ui.rerender(buff_instance, popup.bufnr)
+  ui.rerender(buff_instance, popup.bufnr, buff_cursor)
 end
 
 M.setup = function(opts)
-  opts = opts or {}
+  M.opts = opts or {
+    zz_after_jump = true,
+  }
   vim.keymap.set("n", "ma", "<cmd>lua require('marky-mark').add_mark()<cr>")
   vim.keymap.set("n", "mm", "<cmd>lua require('marky-mark').show_list()<cr>")
 end
