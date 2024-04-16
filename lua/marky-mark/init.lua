@@ -24,6 +24,32 @@ M.add_mark = function()
   marks.mark_buff(buff_instance, vim.api.nvim_win_get_cursor(0))
 end
 
+M.goto_next_mark = function()
+  local buff_nr = vim.api.nvim_get_current_buf()
+  local buff_instance = marks.get_buff_instance(M.buffers, buff_nr)
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local i = marks.get_next_mark_index(buff_instance, cursor[1])
+  if i == nil then
+    print("No next mark in this file.")
+    return
+  end
+
+  marks.goto_mark(buff_instance, i, nil)
+end
+
+M.goto_prev_mark = function()
+  local buff_nr = vim.api.nvim_get_current_buf()
+  local buff_instance = marks.get_buff_instance(M.buffers, buff_nr)
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local i = marks.get_prev_mark_index(buff_instance, cursor[1])
+  if i == nil then
+    print("No next mark in this file.")
+    return
+  end
+
+  marks.goto_mark(buff_instance, i, nil)
+end
+
 M.show_list = function()
   if utils.in_marky_mark() then
     error("Cannot open marky-mark in marky-mark.")
@@ -100,6 +126,8 @@ M.setup = function(opts)
   }
   vim.keymap.set("n", "ma", "<cmd>lua require('marky-mark').add_mark()<cr>")
   vim.keymap.set("n", "mm", "<cmd>lua require('marky-mark').show_list()<cr>")
+  vim.keymap.set("n", "mn", "<cmd>lua require('marky-mark').goto_next_mark()<cr>")
+  vim.keymap.set("n", "mp", "<cmd>lua require('marky-mark').goto_prev_mark()<cr>")
 end
 
 return M

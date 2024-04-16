@@ -27,7 +27,7 @@ M.get_mark_if_marked = function(buff_instance, line)
   end
 end
 
-M.get_next_mark = function(buff_instance)
+M.get_next_mark_char = function(buff_instance)
   if #buff_instance.freed_marks > 0 then
     return table.remove(buff_instance.freed_marks, 1)
   end
@@ -47,7 +47,7 @@ M.mark_buff = function(buff_instance, cursor)
   local do_insert = true
   if mark == nil then
     mark = {
-      char = M.get_next_mark(buff_instance),
+      char = M.get_next_mark_char(buff_instance),
       col = cursor[2],
     }
     vim.api.nvim_buf_set_mark(buff_instance.buff_nr, mark.char, cursor[1], mark.col, {})
@@ -101,7 +101,9 @@ end
 
 M.goto_mark = function(buff_instance, mark_index, close_popup)
   local mark = buff_instance.marks[mark_index]
-  close_popup()
+  if close_popup ~= nil then
+    close_popup()
+  end
   vim.api.nvim_feedkeys("'" .. mark.char, "nx", true)
 
   local cursor = vim.api.nvim_win_get_cursor(0)
@@ -120,6 +122,39 @@ M.get_closest_line_index = function(buff_instance, line_nr)
   end
 
   return min
+end
+
+M.get_next_mark_index = function(buff_instance, curr_line)
+  for i, m in ipairs(buff_instance.marks) do
+    local cursor = vim.api.nvim_buf_get_mark(buff_instance.buff_nr, m.char)
+    if cursor ~= nil and cursor[1] > curr_line then
+      return i
+    end
+  end
+
+  if #buff_instance.marks > 0 then
+    return 1
+  end
+end
+
+M.get_prev_mark_index = function(buff_instance, curr_line)
+  local found = nil
+  for i, m in ipairs(buff_instance.marks) do
+    local cursor = vim.api.nvim_buf_get_mark(buff_instance.buff_nr, m.char)
+    if cursor ~= nil and cursor[1] < curr_line then
+      found = i
+    elseif cursor ~= nil and cursor[1] >= curr_line then
+      break
+    end
+  end
+
+  if found ~= nil then
+    return found
+  end
+
+  if #buff_instance.marks > 0 then
+    return #buff_instance.marks
+  end
 end
 
 return M
