@@ -20,7 +20,7 @@ M.rerender = function(buff_instance, popup_buff_nr, buff_cursor)
   vim.api.nvim_set_option_value("filetype", "marky-mark", { buf = popup_buff_nr })
 
   -- highlight numbers
-  vim.cmd('syntax match myPluginLeadingNumber /^\\d\\+/')
+  vim.cmd('syntax match myPluginLeadingNumber /\\d\\+/')
   vim.cmd('highlight link myPluginLeadingNumber Number')
 end
 

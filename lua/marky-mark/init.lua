@@ -56,23 +56,6 @@ M.show_list = function()
     return
   end
 
-  local popup = Popup({
-    enter = true,
-    focusable = true,
-    border = {
-      style = "rounded",
-      text = {
-        top = "Local Marks",
-        top_align = "center",
-      },
-    },
-    position = "50%",
-    size = {
-      width = 40,
-      height = 10,
-    },
-  })
-
   local buff_nr = vim.api.nvim_get_current_buf()
   local buff_cursor = vim.api.nvim_win_get_cursor(0)
   local buff_instance = marks.get_buff_instance(M.buffers, buff_nr)
@@ -80,6 +63,47 @@ M.show_list = function()
     buff_instance = marks.new_buff_instance(buff_nr)
     table.insert(M.buffers, buff_instance)
   end
+
+  local y_off = nil
+  if buff_cursor ~= nil then
+    local closest_line_index = marks.get_closest_line_index(buff_instance, buff_cursor[1])
+    if closest_line_index ~= nil then
+      y_off = -1 * closest_line_index + 1
+    end
+  end
+
+  local lines = marks.get_marks(buff_instance)
+  local height = #lines
+  if height < 1 then
+    height = 1
+  end
+
+  local popup = Popup({
+    enter = true,
+    focusable = true,
+    relative = "cursor",
+    border = {
+      padding = {
+        --top = 1,
+        --bottom = 1,
+        left = 1,
+        right = 1,
+      },
+      style = "rounded",
+      text = {
+        top = "Local Marks",
+        top_align = "center",
+      },
+    },
+    position = {
+      row = y_off or 0,
+      col = 0,
+    },
+    size = {
+      width = 40,
+      height = height,
+    },
+  })
 
   local ok = popup:map("n", "q", function() popup:unmount() end, { noremap = true })
   local ok2 = popup:map("n", "<c-c>", function() popup:unmount() end, { noremap = true })

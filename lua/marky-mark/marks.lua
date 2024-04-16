@@ -67,20 +67,34 @@ M.mark_buff = function(buff_instance, cursor)
 end
 
 M.get_marks = function(buff_instance)
-  local marks = {}
+  local lines = {}
+  local line_nums = {}
+  local max_num_len = 0
 
   for _, mark in pairs(buff_instance.marks) do
     local cursor = vim.api.nvim_buf_get_mark(buff_instance.buff_nr, mark.char)
-    local lines = vim.api.nvim_buf_get_lines(buff_instance.buff_nr, cursor[1] - 1, cursor[1], false)
-    if #lines > 0 then
-      local line = lines[1]
+    local got_lines = vim.api.nvim_buf_get_lines(buff_instance.buff_nr, cursor[1] - 1, cursor[1], false)
+    if #got_lines > 0 then
+      local line = got_lines[1]
+      -- remove leading and trailing whitespace
       line = line:gsub("^%s*(.-)%s*$", "%1")
+
       local line_nr = tostring(cursor[1])
-      local padding = 5 - #line_nr
-      table.insert(marks, line_nr .. string.rep(" ", padding) .. line)
+      max_num_len = math.max(max_num_len, #line_nr)
+
+      table.insert(lines, line)
+      table.insert(line_nums, line_nr)
     else
       print("Error getting marked line")
     end
+  end
+
+  local marks = {}
+  local padding = 5
+  for i, line in ipairs(lines) do
+    local line_num = line_nums[i]
+    local num_str = string.rep(" ", max_num_len - #line_num) .. line_num
+    table.insert(marks, num_str .. string.rep(" ", padding - #num_str) .. line)
   end
 
   return marks
