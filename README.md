@@ -4,6 +4,7 @@
 * Preview of marked lines
 * Easy management of marks
 * Jump to next/previous marked line in buffer
+* Also saves the cursor position on the line, unlike built-in marks
 
 ![Screenshot of marky-mark.nvim](screenshot.png)
 
@@ -23,15 +24,19 @@
 ### [lazy.nvim](https://github.com/folke/lazy.nvim)
 ```lua
 {
-    "Laellekoenig/marky-mark.nvim",
-    config = function()
-        require("first").setup({
-            use_default_keymap = true,  --set to false to use own keybindings, e.g. to not overwrite m
-            zz_after_jump = true,  -- center the screen after jumping to a mark
-            popup_width = 35,
-        })
-    end
+  "Laellekoenig/marky-mark.nvim",
+  dependencies = {
+    "MunifTanjim/nui.nvim"
+  },
+  config = function()
+    require("marky-mark").setup({
+      use_default_keymap = true,  --set to false to use own keybindings, e.g. to not overwrite m
+      zz_after_jump = true,  --center the screen after jumping to a mark
+      popup_width = 35,
+    })
+  end
 }
+
 ```
 
 ### Customize Keybindings
